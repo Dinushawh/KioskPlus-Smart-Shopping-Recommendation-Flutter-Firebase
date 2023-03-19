@@ -33,7 +33,7 @@ class _verificationState extends State<verification> {
     try {
       await FirebaseAuth.instance.currentUser!.sendEmailVerification();
 
-      timer = Timer.periodic(Duration(seconds: 5), (timer) {
+      timer = Timer.periodic(Duration(seconds: 3), (timer) {
         checkEmailVerified();
       });
     } on Exception catch (e) {
