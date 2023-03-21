@@ -1,11 +1,20 @@
+import 'dart:async';
+
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:http/http.dart' as http;
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:kioskplus/screens/home/home.dart';
 
 class Quiz extends StatefulWidget {
-  const Quiz({super.key, required this.userDocumentID});
+  const Quiz({
+    super.key,
+    required this.userDocumentID,
+  });
 
   final String userDocumentID;
+
   @override
   State<Quiz> createState() => _QuizState();
 }
@@ -13,33 +22,67 @@ class Quiz extends StatefulWidget {
 List<Map> quizlist = [
   {
     'answer': 'Fashion',
+    'code ': 'I01',
   },
   {
     'answer': 'Food',
+    'code ': 'I02',
   },
   {
     'answer': 'Tegnology',
+    'code ': 'I06',
   },
   {
     'answer': 'Education',
+    'code ': 'I03',
   },
   {
     'answer': 'Sports',
+    'code ': 'I04',
   },
   {
     'answer': 'Automobile',
+    'code ': 'I05',
   },
 ];
 
+// I01,Fashion
+// I02,Food
+// I03,Education
+// I04,Sports
+// I05,Automobile
+// I06,Technology
+
 class _QuizState extends State<Quiz> {
   int selectedIndex = 0;
+  String emailad = '';
   Future _sendInterest() async {
     await FirebaseFirestore.instance.collection('interests').add({
       'User Name': widget.userDocumentID,
       'Interest': quizlist[selectedIndex]['answer'],
       'Date': DateTime.now(),
+      'email_address': FirebaseAuth.instance.currentUser!.email,
     });
     selectedIndex = 0;
+  }
+
+  Future<void> sendDataToServer() async {
+    final url =
+        Uri.parse('https://5694-112-134-161-141.ap.ngrok.io/user-interest');
+    final response = await http.post(
+      url,
+      body: {
+        'user_code': widget.userDocumentID,
+        'interest_code': quizlist[selectedIndex]['code'],
+        'email_address': FirebaseAuth.instance.currentUser!.email,
+      },
+    );
+
+    if (response.statusCode == 200) {
+      print('Data sent successfully!');
+    } else {
+      print('Failed to send data. Error code: ${response.statusCode}');
+    }
   }
 
   @override
@@ -58,6 +101,9 @@ class _QuizState extends State<Quiz> {
           ),
           onPressed: () {
             _sendInterest();
+            sendDataToServer();
+            // senddatatomysql();
+
             Navigator.pushReplacement(
               context,
               MaterialPageRoute(
@@ -147,6 +193,7 @@ class _QuizState extends State<Quiz> {
                   ),
                   onPressed: () async {
                     _sendInterest();
+                    sendDataToServer();
                     Navigator.pushReplacement(
                       context,
                       MaterialPageRoute(
